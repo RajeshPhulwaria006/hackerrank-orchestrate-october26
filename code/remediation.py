@@ -76,9 +76,9 @@ def _category_to_resource_id(category: str) -> str:
     return f"{category}_resource"
 
 def generate_steps(
-    case_id: str,
-    rules: List[Dict[str, str]],
+    missing_categories: Set[str],
     evidence_by_cat: Dict[str, Dict[str, str]],
+    cat_to_action: Dict[str, str],
 ) -> List[Dict]:
     """Generate a list of step dictionaries for an incomplete case.
 
