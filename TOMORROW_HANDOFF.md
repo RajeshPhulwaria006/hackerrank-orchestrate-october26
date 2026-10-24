@@ -8,6 +8,10 @@
   ```
 - `deletion_status` must be one of `COMPLETE`, `INCOMPLETE`, or `NOT_APPLICABLE`.
 - `steps_json` must be a JSON array of step objects following the contract in **§6.3** of `AGENTS.md`.
+- Start the session continuity with: 
+  ```bash
+  agy --conversation=e0a77889-a7ae-45d7-92db-9615c8103847
+  ```
 
 ## Repository Structure (relevant parts)
 ```
