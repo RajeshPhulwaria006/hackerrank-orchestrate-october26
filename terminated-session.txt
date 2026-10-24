@@ -1,0 +1,2 @@
+cmd=agy --conversation=e0a77889-a7ae-45d7-92db-9615c8103847
+to make it autonomous=agy --continue --dangerously-skip-permissions
