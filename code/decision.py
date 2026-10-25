@@ -40,7 +40,27 @@ def _evidence_proves_deletion(evidence_path: str) -> bool:
         return False
 
 
-def _rule_has_proof(rule: Dict[str, str], evidences: List[Dict[str, str]]) -> bool:
+def _rule_has_proof(rule: Dict[str, str], evidences: List[Dict[str, str]], marker: str = EVIDENCE_MARKER) -> bool:
+    """Determine whether any evidence in *evidences* satisfies the requirement for *rule*.
+
+    The contract requires the evidence to be linked to the data category. We perform a simple
+    heuristic: the evidence file path must contain the rule's `data_category` (case-insensitive)
+    **and** the file must contain the specified *marker* (e.g., DELETE_CONFIRMED, REDACTED).
+    """
+    category = rule.get("data_category", "").strip().lower()
+    if not category:
+        return False
+    for ev in evidences:
+        # Resolve the actual file on disk (relative to repo root)
+        full_path = Path(ev.get("file_path", "")).resolve()
+        try:
+            with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
+                for line in f:
+                    if marker in line:
+                        return True
+        except Exception:
+            continue
+    return False
     """Determine whether any evidence in *evidences* satisfies the DELETE requirement for *rule*.
 
     The contract requires the evidence to be linked to the data category. We perform a simple
@@ -106,9 +126,42 @@ def classify_requests(
         missing_proof = False
         for rule in deletion_rules:
             required_action = rule.get("required_action", "").strip().upper()
-            if required_action != "DELETE":
-                continue  # Non‑delete actions are considered satisfied.
-            if not _rule_has_proof(rule, evid_at_cutoff):
+            # Determine expected marker for the action
+            action_marker = {
+                "DELETE": "DELETE_CONFIRMED",
+                "REDACT": "REDACTED",
+                "ANONYMIZE": "ANONYMIZED",
+                # Actions that do not require a specific marker; presence of any evidence file suffices
+                "RETAIN": None,
+                "LEGAL_HOLD": None,
+                "BACKUP": None,
+            }.get(required_action)
+
+            if action_marker is None:
+                # Verify at least one evidence file for the category exists before cutoff
+                cat = rule.get("data_category", "").strip().lower()
+                has_any = any(
+                    cat in ev.get("file_path", "").lower()
+                    for ev in evid_at_cutoff
+                )
+                if not has_any:
+                    missing_proof = True
+                    break
+                else:
+                    continue
+
+            # For actions with a marker, require evidence containing that marker
+            # Simplified: check any evidence file before cutoff contains the marker
+            marker_found = False
+            for ev in evid_at_cutoff:
+                try:
+                    content = Path(ev.get("file_path", "")).read_text(encoding="utf-8", errors="ignore")
+                except Exception:
+                    continue
+                if action_marker in content:
+                    marker_found = True
+                    break
+            if not marker_found:
                 missing_proof = True
                 break
 

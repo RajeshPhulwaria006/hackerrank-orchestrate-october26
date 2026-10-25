@@ -108,7 +108,7 @@ def load_dataset(root: Path | None = None) -> Dict[str, List[Dict[str, str]]]:
 
     Args:
         root: Repository root. Defaults to the parent of this file's directory
-              (i.e. the repo root when code/ is a sub-directory).
+            (i.e. the repo root when code/ is a sub-directory).
 
     Returns:
         dict keyed by logical name -> list of row dicts.
