@@ -51,7 +51,7 @@ def run_pipeline(root: Path | None = None) -> None:
     # Sort by case_id as required
     rows.sort(key=lambda r: r["case_id"])
 
-    out_path = (Path(__file__).resolve().parent.parent / "dataset" / "output.csv")
+    out_path = (Path(__file__).resolve().parent.parent / "output.csv")
     with open(out_path, "w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=["case_id", "deletion_status", "steps_json"])
         writer.writeheader()
